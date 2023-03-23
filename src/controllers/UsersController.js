@@ -1,4 +1,4 @@
-const { hash } = require("bcrypt");
+const { hash, compare } = require('bcrypt');
 const knex = require('../database/knex');
 var moment = require('moment-timezone');
 
@@ -30,8 +30,62 @@ class UsersController {
       });
       res.status(201).json({ name, email, hashedPassword, brTimeZoneCreatedAt, brTimeZoneUpdatedAt });
     } catch (error) {
-      console.log(error)
+      console.error(error)
       res.status(500).json({ error: 'Unable to create user' });
+    }
+  }
+
+  async update(req, res) {
+    const { id } = req.params;
+    const { name, email, password, old_password, updated_at } = req.body;
+
+    //selects the user based on the id provided in the params
+    const user = await knex('users').where({ id }).first();
+
+    //checks if the user is in the database
+    if (!user) {
+      return res.status(400).json({ error: 'User not registered' });
+    }
+
+    //checks if the new email is already registered
+    const isEmailRegistered = await knex('users').where({ email }).first();
+    if (isEmailRegistered && isEmailRegistered.id !== Number(id)) {
+      return res.status(500).json({ error: 'Email is already taken. Try a different one.' });
+    }
+
+    //assign the updated name or email to the user
+    user.name = name;
+    user.email = email;
+
+    //updates the time user was updated with brazil's time zone
+    const brTimeZoneUpdatedAt = moment.tz(updated_at, 'America/Sao_Paulo').format();
+
+    //check if user has updated password
+    if (password && !old_password) {
+      return res.status(500).json({ error: 'Please provide your last password to update it.' });
+    } else {
+      //check if current password matches before updating
+      const isPasswordCorrect = await compare(old_password, user.password);
+
+      if (!isPasswordCorrect) {
+        return res.status(500).json({ error: 'The password does not match your current password.' });
+      }
+      //updates password
+      user.password = await hash(password, 10);
+    }
+
+    //updates the user
+    try {
+      await knex('users').where({ id }).update({
+        name: user.name,
+        email: user.email,
+        updated_at: brTimeZoneUpdatedAt,
+        password: user.password
+      });
+      res.status(200).json({ name, email });
+    } catch (error) {
+      console.error(error)
+      res.status(500).json({ error: 'Unable to update user' });
     }
   }
 };
