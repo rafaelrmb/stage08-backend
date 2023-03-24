@@ -5,6 +5,7 @@ class MoviesController {
   async create(req, res) {
     const { title, description, rating, created_at, updated_at, tags } = req.body;
     const { user_id } = req.params;
+    let movieId;
 
     //checks if the user has already registered the movie
     const isMovieRegistered = await knex('movies').where({ title, user_id }).first();
@@ -30,6 +31,7 @@ class MoviesController {
         updated_at: brTimeZoneUpdatedAt,
         user_id
       });
+      movieId = movie_id;
       res.status(200).json({ title, description, rating, brTimeZoneCreatedAt, brTimeZoneUpdatedAt });
     } catch (error) {
       console.error(error)
@@ -40,7 +42,7 @@ class MoviesController {
     const tagsInsert = tags.map(name => {
       return {
         name,
-        movie_id,
+        movie_id: movieId,
         user_id
       }
     });
