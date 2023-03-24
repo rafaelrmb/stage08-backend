@@ -79,6 +79,44 @@ class MoviesController {
       tags: tagsNames
     });
   }
+
+  async index(req, res) {
+    const { user_id, title } = req.query;
+    let movies = [];
+
+    //collect all the movies for a specific user
+    if (!title) {
+      movies = await knex('movies')
+        .where({ user_id })
+        .orderBy('created_at', 'desc');
+    } else {
+      //collects the list movies for a specific user when a title is provided
+      movies = await knex('movies')
+        .where({ user_id })
+        .whereLike('title', `%${title}%`)
+        .orderBy('title');
+    }
+
+    //if the user has not registered any movies return a 404 error
+    if (movies.length === 0) {
+      return res.status(404).json({
+        message: title ?
+          'The user has not registered any movies with this title yet'
+          : 'The user has not registered any movies yet'
+      });
+    }
+
+    //return the movies list formatted with title description and rating only
+    const moviesList = movies.map(movie => {
+      return {
+        title: movie.title,
+        description: movie.description,
+        rating: movie.rating,
+      }
+    });
+
+    return res.status(200).json(moviesList);
+  }
 }
 
 module.exports = MoviesController;
