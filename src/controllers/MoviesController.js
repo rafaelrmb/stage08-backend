@@ -141,6 +141,14 @@ class MoviesController {
 
     return res.status(200).json(moviesList);
   }
+
+  async delete(req, res) {
+    const { user_id, id } = req.params;
+
+    const isDeleted = await knex('movies').where({ id, user_id }).delete();
+
+    return isDeleted ? res.status(200).json({ message: 'Movie deleted' }) : res.status(404).json({ message: 'Movie not found' });
+  }
 }
 
 module.exports = MoviesController;

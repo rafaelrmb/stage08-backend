@@ -4,8 +4,9 @@ const moviesController = new MoviesController();
 const moviesRoutes = Router();
 
 
+moviesRoutes.get("/", moviesController.index);
 moviesRoutes.post("/:user_id", moviesController.create);
 moviesRoutes.get("/:user_id/:id", moviesController.show);
-moviesRoutes.get("/", moviesController.index);
+moviesRoutes.delete("/:user_id/:id", moviesController.delete);
 
 module.exports = moviesRoutes;
