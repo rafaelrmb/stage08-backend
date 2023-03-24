@@ -53,6 +53,32 @@ class MoviesController {
       res.status(500).json({ error: 'Unable to create tags' });
     }
   }
+
+  async show(req, res) {
+    const { user_id, id } = req.params;
+
+    //collect the movie with specific id for a specific user
+    const movie = await knex('movies').where({ id, user_id }).first();
+
+    //collect all the tags for the movie with specific id for a specific user
+    const tags = await knex('tags').where({ movie_id: id, user_id });
+
+    //return only the names of the tags in the db
+    const tagsNames = tags.map(tag => tag.name);
+
+    //if the movie is not found return a 404 error
+    if (!movie) {
+      return res.status(404).json({ message: 'Movie not found' });
+    }
+
+    //return the movie
+    res.status(200).json({
+      title: movie.title,
+      description: movie.description,
+      rating: movie.rating,
+      tags: tagsNames
+    });
+  }
 }
 
 module.exports = MoviesController;
