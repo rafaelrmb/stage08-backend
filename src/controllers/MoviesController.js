@@ -81,37 +81,61 @@ class MoviesController {
   }
 
   async index(req, res) {
-    const { user_id, title } = req.query;
-    let movies = [];
+    const { user_id, title, tags } = req.query;
+    let query = knex('movies').where({ user_id });
 
-    //collect all the movies for a specific user
-    if (!title) {
-      movies = await knex('movies')
-        .where({ user_id })
-        .orderBy('created_at', 'desc');
-    } else {
-      //collects the list movies for a specific user when a title is provided
-      movies = await knex('movies')
-        .where({ user_id })
-        .whereLike('title', `%${title}%`)
-        .orderBy('title');
+    //if the user has provided a title
+    if (title) {
+      query = query.where('title', 'like', `%${title}%`).orderBy('title');
     }
+
+    //if tags are provided
+    if (tags) {
+      const tagsArr = tags.split(',').map(tag => tag.trim());
+
+      query = knex('tags')
+        .select([
+          'movies.title',
+          'movies.description',
+          'movies.rating',
+          'movies.user_id',
+          'movies.id'
+        ])
+        .where('movies.user_id', user_id)
+        .whereIn('name', tagsArr)
+        .innerJoin('movies', 'movies.id', 'tags.movie_id')
+        .orderBy('created_at', 'desc');
+
+      if (title) {
+        query = query.where('title', 'like', `%${title}%`);
+      }
+    }
+
+    const movies = await query;
+
+    const userTags = await knex('tags').where({ user_id });
+    const moviesWithTags = movies.map(movie => {
+      const movieTags = userTags.filter(tag => tag.movie_id === movie.id);
+      const tagsNames = movieTags.map(tag => tag.name);
+
+      return {
+        ...movie,
+        tags: tagsNames
+      };
+    });
 
     //if the user has not registered any movies return a 404 error
     if (movies.length === 0) {
-      return res.status(404).json({
-        message: title ?
-          'The user has not registered any movies with this title yet'
-          : 'The user has not registered any movies yet'
-      });
+      return res.status(404).json({ message: 'No movies found' });
     }
 
     //return the movies list formatted with title description and rating only
-    const moviesList = movies.map(movie => {
+    const moviesList = moviesWithTags.map(movie => {
       return {
         title: movie.title,
         description: movie.description,
         rating: movie.rating,
+        tags: movie.tags
       }
     });
 
