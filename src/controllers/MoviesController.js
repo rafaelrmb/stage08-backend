@@ -149,6 +149,40 @@ class MoviesController {
 
     return isDeleted ? res.status(200).json({ message: 'Movie deleted' }) : res.status(404).json({ message: 'Movie not found' });
   }
+
+  async update(req, res) {
+    const { user_id, id } = req.params;
+    const { updated_at, description, title } = req.body;
+
+    const movie = await knex('movies').where({ user_id, id }).first();
+
+    if (!movie) {
+      return res.status(404).json({ message: "The movie was not registered by this user." });
+    }
+
+    const isMovieRegistered = await knex('movies').where({ user_id, title }).first();
+
+    if (isMovieRegistered && movie.title !== title) {
+      return res.status(500).json({ message: 'User has already registered a movie with this title.' });
+    }
+
+    const brTimeZoneUpdatedAt = moment.tz(updated_at, 'America/Sao_Paulo').format();
+
+    movie.description = description;
+    movie.title = title;
+
+    try {
+      await knex('movies').where({ user_id, id }).update({
+        title: movie.title,
+        description: movie.description,
+        created_at: brTimeZoneUpdatedAt
+      });
+    } catch (error) {
+      return res.status(500).json({ message: 'Could not update the movie info.' });
+    }
+
+    return res.status(200).json(movie);
+  }
 }
 
 module.exports = MoviesController;
