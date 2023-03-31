@@ -4,7 +4,7 @@ var moment = require('moment-timezone');
 class MoviesController {
   async create(req, res) {
     const { title, description, rating, created_at, updated_at, tags } = req.body;
-    const { user_id } = req.params;
+    const user_id = req.user.id;
     let movieId;
 
     //checks if the user has already registered the movie
@@ -55,7 +55,8 @@ class MoviesController {
   }
 
   async show(req, res) {
-    const { user_id, id } = req.params;
+    const { id } = req.params;
+    const user_id = req.user.id;
 
     //collect the movie with specific id for a specific user
     const movie = await knex('movies').where({ id, user_id }).first();
@@ -81,7 +82,9 @@ class MoviesController {
   }
 
   async index(req, res) {
-    const { user_id, title, tags } = req.query;
+    const { title, tags } = req.query;
+    const user_id = req.user.id;
+
     let query = knex('movies').where({ user_id });
 
     //if the user has provided a title
@@ -143,7 +146,8 @@ class MoviesController {
   }
 
   async delete(req, res) {
-    const { user_id, id } = req.params;
+    const { id } = req.params;
+    const user_id = req.user.id;
 
     const isDeleted = await knex('movies').where({ id, user_id }).delete();
 
@@ -151,8 +155,9 @@ class MoviesController {
   }
 
   async update(req, res) {
-    const { user_id, id } = req.params;
+    const { id } = req.params;
     const { updated_at, description, title } = req.body;
+    const user_id = req.user.id;
 
     const movie = await knex('movies').where({ user_id, id }).first();
 

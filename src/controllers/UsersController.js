@@ -36,11 +36,11 @@ class UsersController {
   }
 
   async update(req, res) {
-    const { id } = req.params;
+    const user_id = req.user.id;
     const { name, email, password, old_password, updated_at } = req.body;
 
     //selects the user based on the id provided in the params
-    const user = await knex('users').where({ id }).first();
+    const user = await knex('users').where({ id: user_id }).first();
 
     //checks if the user is in the database
     if (!user) {
@@ -49,7 +49,7 @@ class UsersController {
 
     //checks if the new email is already registered
     const isEmailRegistered = await knex('users').where({ email }).first();
-    if (isEmailRegistered && isEmailRegistered.id !== Number(id)) {
+    if (isEmailRegistered && isEmailRegistered.id !== Number(user_id)) {
       return res.status(500).json({ error: 'Email is already taken. Try a different one.' });
     }
 
@@ -76,7 +76,7 @@ class UsersController {
 
     //updates the user
     try {
-      await knex('users').where({ id }).update({
+      await knex('users').where({ id: user_id }).update({
         name: user.name,
         email: user.email,
         updated_at: brTimeZoneUpdatedAt,
