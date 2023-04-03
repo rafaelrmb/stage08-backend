@@ -60,8 +60,11 @@ class UsersController {
     //updates the time user was updated with brazil's time zone
     const brTimeZoneUpdatedAt = moment.tz(updated_at, 'America/Sao_Paulo').format();
 
+
     //check if user has updated password
-    if (password && !old_password) {
+    if (!password && !old_password) {
+      user.password = user.password;
+    } else if (password && !old_password) {
       return res.status(500).json({ error: 'Please provide your last password to update it.' });
     } else {
       //check if current password matches before updating
