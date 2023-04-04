@@ -5,7 +5,7 @@ class TagsController {
   async index(req, res) {
     const user_id = req.user.id;
 
-    const tags = await knex('tags').where({ user_id });
+    const tags = await knex('tags').where({ user_id }).groupBy('name');
 
     if (tags.length === 0) {
       return res.status(404).json({ message: 'No tags were found for this user' });
