@@ -119,11 +119,11 @@ class MoviesController {
     const userTags = await knex('tags').where({ user_id });
     const moviesWithTags = movies.map(movie => {
       const movieTags = userTags.filter(tag => tag.movie_id === movie.id);
-      const tagsNames = movieTags.map(tag => tag.name);
+      const tags = movieTags.map(tag => tag);
 
       return {
         ...movie,
-        tags: tagsNames
+        tags
       };
     });
 
@@ -135,6 +135,7 @@ class MoviesController {
     //return the movies list formatted with title description and rating only
     const moviesList = moviesWithTags.map(movie => {
       return {
+        id: movie.id,
         title: movie.title,
         description: movie.description,
         rating: movie.rating,
