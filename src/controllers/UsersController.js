@@ -12,6 +12,21 @@ class UsersController {
       return res.status(400).json({ error: 'Email already registered' });
     }
 
+    // checks if the password is at least 8 characters long and passes the regex 
+    const passwordRegex =
+      /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*()_+=[\]{}|\\;:'",.<>/?-]).{8,}$/;
+
+    if (!passwordRegex.test(password)) {
+      return res.status(400)
+        .json({ error: 'Sua senha deve conter no mínimo 8 caracteres, conter um número, uma letra minúscula e uma maiúscula e um caractere especial.' });
+    }
+
+    // checks if the email passes the regex
+    const emailRegex = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ error: 'Email inválido' });
+    }
+
     //hashes the password from encryption
     const hashedPassword = await hash(password, 10);
 
