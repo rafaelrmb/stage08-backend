@@ -4,7 +4,7 @@
   "description": "RocketMovies backend project",
   "main": "./src/server.js",
   "scripts": {
-    "start": "node server.js",
+    "start": "pm2-runtime start ecosystem.config.js --env production",
     "dev": "nodemon server.js",
     "migrate": "knex migrate:latest"
   },
@@ -20,6 +20,7 @@
     "knex": "^2.4.2",
     "moment-timezone": "^0.5.41",
     "multer": "^1.4.5-lts.1",
+    "pm2": "^5.3.0",
     "sqlite": "^4.1.2",
     "sqlite3": "^5.1.6"
   },
